@@ -1,18 +1,18 @@
 /*
-   Copyright 2016 André Vieira
-
-   Licensed under the Apache License, Version 2.0 (the "License");
-   you may not use this file except in compliance with the License.
-   You may obtain a copy of the License at
-
-       http://www.apache.org/licenses/LICENSE-2.0
-
-   Unless required by applicable law or agreed to in writing, software
-   distributed under the License is distributed on an "AS IS" BASIS,
-   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-   See the License for the specific language governing permissions and
-   limitations under the License.
-*/
+ Copyright 2016 André Vieira
+ 
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+ 
+ http://www.apache.org/licenses/LICENSE-2.0
+ 
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+ */
 
 /********* cordova-secure-device.m Cordova Plugin Implementation *******/
 
@@ -26,33 +26,46 @@
 
 - (void)pluginInitialize
 {
-  [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onResume:)
-                                               name:UIApplicationDidBecomeActiveNotification object:nil];
-  [self checkDevice];
+    [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(onResume:)
+                                                 name:UIApplicationDidBecomeActiveNotification object:nil];
+    [self checkDevice];
 }
 
 - (void) onResume:(UIApplication *)application 
 {
-  [self checkDevice];
+    [self checkDevice];
 }
 
 - (void) checkDevice
 {
-  BOOL jailbroken = [UIDevice currentDevice].isJB;
-  LNPasscodeStatus status = [UIDevice currentDevice].passcodeStatus;
-
-  if (jailbroken || status == LNPasscodeStatusDisabled || status == LNPasscodeStatusUnknown) {
-    NSBundle *thisBundle = [NSBundle bundleWithPath: [[NSBundle mainBundle] pathForResource:NSStringFromClass([self class]) ofType: @"bundle"]];
-    NSString *alertMessage = [thisBundle localizedStringForKey:@"This application does not run on a device that is jailbroken or does not have a passcode set." value:nil table:nil];
-    NSString *alertCloseButtonText = [thisBundle localizedStringForKey:@"Close" value:nil table:nil];
+    BOOL jailbroken = [UIDevice currentDevice].isJB;
+    LNPasscodeStatus status = [UIDevice currentDevice].passcodeStatus;
     
-    dispatch_async( dispatch_get_main_queue(), ^ {
-      //Remove webView
-      [self.webView removeFromSuperview];
-      // Show Alert
-      [self showAlert:alertMessage closeLabel:alertCloseButtonText];
-    });   
-  }
+    if (jailbroken || status == LNPasscodeStatusDisabled || status == LNPasscodeStatusUnknown) {
+        
+        NSString* alertMessage = @"This application does not run on a device that is rooted.";
+        NSString* customAlertCloseButtonText = [self.commandDelegate.settings objectForKey:@"secureplugindialogcloselabel"];
+        NSString *alertCloseButtonText = customAlertCloseButtonText ? customAlertCloseButtonText : @"Close";
+        
+        if(jailbroken) {
+            NSString* customAlertMessage = [self.commandDelegate.settings objectForKey:@"securepluginrooteddevicestring"];
+            if(customAlertMessage) {
+                alertMessage = [customAlertMessage copy];
+            }
+        } else {
+            NSString* customAlertMessage = [self.commandDelegate.settings objectForKey:@"securepluginnolocksafetystring"];
+            if(customAlertMessage) {
+                alertMessage = [customAlertMessage copy];
+            }
+        }
+        
+        dispatch_async( dispatch_get_main_queue(), ^ {
+            //Remove webView
+            [self.webView removeFromSuperview];
+            // Show Alert
+            [self showAlert:alertMessage closeLabel:alertCloseButtonText];
+        });
+    }
 }
 /*
  * showAlert - Common method to instantiate the alert view for alert
@@ -85,9 +98,9 @@
         [alertController addAction:[UIAlertAction actionWithTitle:closeLabel
                                                             style:UIAlertActionStyleDefault
                                                           handler:^(UIAlertAction * action)
-        {
-           exit(0); 
-        }]];
+                                    {
+                                        exit(0);
+                                    }]];
         
         [self.viewController presentViewController:alertController animated:YES completion:nil];
         
@@ -95,16 +108,16 @@
     else
     {
 #endif
-
+        
         UIAlertView* alertView = [[UIAlertView alloc]
-                                   initWithTitle:nil
-                                   message:message
-                                   delegate:self
-                                   cancelButtonTitle:nil
-                                   otherButtonTitles:nil];
-                        
+                                  initWithTitle:nil
+                                  message:message
+                                  delegate:self
+                                  cancelButtonTitle:nil
+                                  otherButtonTitles:nil];
+        
         [alertView addButtonWithTitle:closeLabel];
-                
+        
         [alertView show];
 #ifdef __IPHONE_8_0
     }
@@ -114,7 +127,7 @@
 
 -(void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
 {	
-	exit(0);
+    exit(0);
 }
 
 @end

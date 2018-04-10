@@ -1,9 +1,9 @@
 {
-  "name": "cordova-secure-device",
-  "version": "1.0.3",
+  "name": "outsystems-secure-device",
+  "version": "1.0.0",
   "description": "Stops app from running if device is not secure, i.e. it is jailbroken, rooted, or doesn't have a passcode set.",
   "cordova": {
-    "id": "cordova-secure-device",
+    "id": "outsystems-secure-device",
     "platforms": [
       "android",
       "ios"
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/agmv/cordova-secure-device.git"
+    "url": "git+https://github.com/OutSystemsExperts/cordova-secure-device.git"
   },
   "keywords": [
     "ecosystem:cordova",
@@ -19,9 +19,16 @@
     "cordova-ios"
   ],
   "author": "Andre Vieira",
+  "contributors": [
+    {
+      "name": "João Gonçalves",
+      "email": "joao.goncalves@outsystems.com",
+      "url": "outsystems.com"
+    }
+  ],
   "license": "Apache 2.0 License",
   "bugs": {
-    "url": "https://github.com/agmv/cordova-secure-device/issues"
+    "url": "https://github.com/OutSystemsExperts/cordova-secure-device/issues"
   },
-  "homepage": "https://github.com/agmv/cordova-secure-device#readme"
+  "homepage": "https://github.com/OutSystemsExperts/cordova-secure-device#readme"
 }

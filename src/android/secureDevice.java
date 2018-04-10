@@ -16,41 +16,36 @@
 
 package com.outsystemscloud.andrevieira;
 
-import org.apache.cordova.CordovaPlugin;
-import org.apache.cordova.CordovaInterface;
-import org.apache.cordova.CallbackContext;
-import org.apache.cordova.PluginResult;
-import org.apache.cordova.CordovaWebView;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.lang.Exception;
-import java.io.File;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
-import android.app.Application;
 import android.app.KeyguardManager;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.content.Intent;
-import android.content.res.Resources;
+import android.os.Build;
 import android.provider.Settings;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import org.apache.cordova.CordovaInterface;
+import org.apache.cordova.CordovaPlugin;
+import org.apache.cordova.CordovaWebView;
+
+import java.io.File;
+
 
 public class secureDevice extends CordovaPlugin {
 
+    public static final String DIALOG_CLOSE_LABEL = "SecurePluginDialogCloseLabel";
+    public static final String ROOTED_DEVICE_STRING = "SecurePluginRootedDeviceString";
+    public static final String NO_LOCK_DEVICE_STRING = "SecurePluginNoLockSafetyString";
+
     CordovaInterface cordova;
     CordovaWebView view;
-    
+
     @Override
     public void initialize(CordovaInterface cordova, CordovaWebView webView) {
         super.initialize(cordova, webView);
@@ -71,27 +66,35 @@ public class secureDevice extends CordovaPlugin {
         if (_isDeviceRooted || !_isPasscodeSet) {
             // Remove View
             View v = this.view.getView();
-            ViewGroup viewParent = (ViewGroup) v.getParent();
-            viewParent.removeView(v);
+            if (v != null) {
+                ViewGroup viewParent = (ViewGroup) v.getParent();
+                if (viewParent != null) {
+                    viewParent.removeView(v);
+                }
+            }
 
-            // Show message and quit
-            Application app = cordova.getActivity().getApplication();
-            String package_name = app.getPackageName();
-            Resources resources = app.getResources();
-            String message = resources.getString(resources.getIdentifier("message","string", package_name));
-            String label = resources.getString(resources.getIdentifier("label","string", package_name));
-            this.alert(message, label);
+            String message = "This application does not run on a device that is rooted.";
+            String dialogCloseLabel = this.preferences.getString(DIALOG_CLOSE_LABEL, "Close");
+
+            if (_isDeviceRooted) {
+                message = this.preferences.getString(ROOTED_DEVICE_STRING, message);
+            } else if (!_isPasscodeSet) {
+                message = this.preferences.getString(NO_LOCK_DEVICE_STRING, "This application does not run on a device that does not have a passcode set.");
+            }
+            this.alert(message, dialogCloseLabel);
         }
     }
 
     /**
      * Detect weather device is rooted or not
+     *
      * @author trykov
      * @source https://github.com/trykovyura/cordova-plugin-root-detection
      */
     private boolean isDeviceRooted() {
         return checkBuildTags() || checkSuperUserApk() || checkFilePath();
     }
+
     private boolean checkBuildTags() {
         String buildTags = android.os.Build.TAGS;
         return buildTags != null && buildTags.contains("test-keys");
@@ -102,8 +105,8 @@ public class secureDevice extends CordovaPlugin {
     }
 
     private boolean checkFilePath() {
-        String[] paths = { "/sbin/su", "/system/bin/su", "/system/xbin/su", "/data/local/xbin/su", "/data/local/bin/su", "/system/sd/xbin/su",
-                "/system/bin/failsafe/su", "/data/local/su" };
+        String[] paths = {"/sbin/su", "/system/bin/su", "/system/xbin/su", "/data/local/xbin/su", "/data/local/bin/su", "/system/sd/xbin/su",
+                "/system/bin/failsafe/su", "/data/local/su"};
         for (String path : paths) {
             if (new File(path).exists()) return true;
         }
@@ -111,18 +114,16 @@ public class secureDevice extends CordovaPlugin {
     }
 
 
-
     /**
      * <p>Checks to see if the lock screen is set up with either a PIN / PASS / PATTERN</p>
-     *
+     * <p>
      * <p>For Api 16+</p>
      *
      * @return true if PIN, PASS or PATTERN set, false otherwise.
      * @author doridori
      * @source https://gist.github.com/doridori/54c32c66ef4f4e34300f
      */
-    public static boolean doesDeviceHaveSecuritySetup(Context context)
-    {
+    public static boolean doesDeviceHaveSecuritySetup(Context context) {
         return isPatternSet(context) || isPassOrPinSet(context);
     }
 
@@ -130,24 +131,22 @@ public class secureDevice extends CordovaPlugin {
      * @param context
      * @return true if pattern set, false if not (or if an issue when checking)
      */
-    private static boolean isPatternSet(Context context)
-    {
+    private static boolean isPatternSet(Context context) {
         ContentResolver cr = context.getContentResolver();
-        try
-        {
-            // This constant was deprecated in API level 23. 
-            // Use KeyguardManager to determine the state and security level of the keyguard. 
-            // Accessing this setting from an app that is targeting M or later throws a SecurityException.
+        try {
             if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M) {
                 int lockPatternEnable = Settings.Secure.getInt(cr, Settings.Secure.LOCK_PATTERN_ENABLED);
                 return lockPatternEnable == 1;
             } else {
-                return false;
+                KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE);
+                if (keyguardManager != null) {
+                    return keyguardManager.isKeyguardSecure();
+                } else {
+                    return false;
+                }
             }
-        }
-        catch (Settings.SettingNotFoundException e)
-        {
-            
+        } catch (Settings.SettingNotFoundException e) {
+
             return false;
         }
     }
@@ -156,23 +155,22 @@ public class secureDevice extends CordovaPlugin {
      * @param context
      * @return true if pass or pin set
      */
-    @SuppressLint("NewApi") 
-    private static boolean isPassOrPinSet(Context context)
-    {
+    @SuppressLint("NewApi")
+    private static boolean isPassOrPinSet(Context context) {
         KeyguardManager keyguardManager = (KeyguardManager) context.getSystemService(Context.KEYGUARD_SERVICE); //api 16+
         return keyguardManager.isKeyguardSecure();
     }
 
     /**
      * Builds and shows a native Android alert with given Strings
-     * @param message           The message the alert should display
-     * @param buttonLabel       The label of the button
-     * @param callbackContext   The callback context
+     *
+     * @param message         The message the alert should display
+     * @param buttonLabel     The label of the button
+     * @param callbackContext The callback context
      */
     private synchronized void alert(final String message, final String buttonLabel) {
         final CordovaInterface cordova = this.cordova;
-        final Activity activity = cordova.getActivity();
-
+        
         Runnable runnable = new Runnable() {
             public void run() {
 
@@ -185,14 +183,16 @@ public class secureDevice extends CordovaPlugin {
                                 dialog.dismiss();
                                 System.exit(0);
                             }
-                        });                
-                dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
-                    public void onDismiss(final DialogInterface dialog) {
-                        System.exit(0);
-                    }
-                });
+                        });
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR1) {
+                    dlg.setOnDismissListener(new DialogInterface.OnDismissListener() {
+                        public void onDismiss(final DialogInterface dialog) {
+                            System.exit(0);
+                        }
+                    });
+                }
                 changeTextDirection(dlg);
-            };
+            }
         };
         this.cordova.getActivity().runOnUiThread(runnable);
     }
@@ -208,12 +208,12 @@ public class secureDevice extends CordovaPlugin {
     }
 
     @SuppressLint("NewApi")
-    private void changeTextDirection(Builder dlg){
+    private void changeTextDirection(Builder dlg) {
         int currentapiVersion = android.os.Build.VERSION.SDK_INT;
         dlg.create();
-        AlertDialog dialog =  dlg.show();
+        AlertDialog dialog = dlg.show();
         if (currentapiVersion >= android.os.Build.VERSION_CODES.JELLY_BEAN_MR1) {
-            TextView messageview = (TextView)dialog.findViewById(android.R.id.message);
+            TextView messageview = (TextView) dialog.findViewById(android.R.id.message);
             messageview.setTextDirection(android.view.View.TEXT_DIRECTION_LOCALE);
         }
     }
