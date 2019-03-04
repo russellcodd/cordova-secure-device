@@ -1,6 +1,6 @@
 {
   "name": "outsystems-secure-device",
-  "version": "2.0.0.os",
+  "version": "2.0.0-os2",
   "description": "Stops app from running if device is not secure, i.e. it is jailbroken, rooted, or doesn't have a passcode set.",
   "cordova": {
     "id": "outsystems-secure-device",

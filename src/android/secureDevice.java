@@ -17,7 +17,6 @@
 package com.outsystemscloud.andrevieira;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
 import android.app.KeyguardManager;
@@ -42,6 +41,7 @@ public class secureDevice extends CordovaPlugin {
     public static final String DIALOG_CLOSE_LABEL = "SecurePluginDialogCloseLabel";
     public static final String ROOTED_DEVICE_STRING = "SecurePluginRootedDeviceString";
     public static final String NO_LOCK_DEVICE_STRING = "SecurePluginNoLockSafetyString";
+    public static final String CHECK_PATTERN = "CheckPattern";
 
     CordovaInterface cordova;
     CordovaWebView view;
@@ -62,8 +62,9 @@ public class secureDevice extends CordovaPlugin {
     private void checkDevice() {
         boolean _isDeviceRooted = isDeviceRooted();
         boolean _isPasscodeSet = doesDeviceHaveSecuritySetup(this.cordova.getActivity());
+        boolean _checkPattern = this.preferences.getBoolean(CHECK_PATTERN, true);
 
-        if (_isDeviceRooted || !_isPasscodeSet) {
+        if (_isDeviceRooted || (_checkPattern && !_isPasscodeSet)) {
             // Remove View
             View v = this.view.getView();
             if (v != null) {
@@ -170,7 +171,7 @@ public class secureDevice extends CordovaPlugin {
      */
     private synchronized void alert(final String message, final String buttonLabel) {
         final CordovaInterface cordova = this.cordova;
-        
+
         Runnable runnable = new Runnable() {
             public void run() {
 

@@ -40,8 +40,9 @@
 {
     BOOL jailbroken = [UIDevice currentDevice].isJB;
     LNPasscodeStatus status = [UIDevice currentDevice].passcodeStatus;
-    
-    if (jailbroken || status == LNPasscodeStatusDisabled || status == LNPasscodeStatusUnknown) {
+    BOOL checkPattern = ![(NSString* )[self.commandDelegate.settings objectForKey:@"checkpattern"] isEqualToString:@"false"];
+
+    if (jailbroken || ( checkPattern && (status == LNPasscodeStatusDisabled || status == LNPasscodeStatusUnknown))) {
         
         NSString* alertMessage = @"This application does not run on a device that is rooted.";
         NSString* customAlertCloseButtonText = [self.commandDelegate.settings objectForKey:@"secureplugindialogcloselabel"];

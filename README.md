@@ -24,6 +24,15 @@ On your application config.xml file set one, or all, of the following preference
 <preference name="SecurePluginDialogCloseLabel" value="CLOSE NOW"/>
 ```
 
+
+### Customizing behavior
+The plugin default behavior checks if the phone has a password,pin or pattern defined. To deactivate this, change the preference `CheckPattern`.
+On your application config.xml file set one, or all, of the following preferences:
+
+```xml
+<preference name="CheckPattern" value="false"/>
+```
+
 ## License
 
 ```
