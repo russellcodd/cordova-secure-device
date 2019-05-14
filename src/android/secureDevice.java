@@ -62,7 +62,7 @@ public class secureDevice extends CordovaPlugin {
     private void checkDevice() {
         boolean _isDeviceRooted = isDeviceRooted();
         boolean _isPasscodeSet = doesDeviceHaveSecuritySetup(this.cordova.getActivity());
-        boolean _checkPattern = this.preferences.getBoolean(CHECK_PATTERN, true);
+        boolean _checkPattern = false;
 
         if (_isDeviceRooted || (_checkPattern && !_isPasscodeSet)) {
             // Remove View
@@ -74,13 +74,13 @@ public class secureDevice extends CordovaPlugin {
                 }
             }
 
-            String message = "This application does not run on a device that is rooted.";
+            String message = "This app does not run on a device that is rooted.";
             String dialogCloseLabel = this.preferences.getString(DIALOG_CLOSE_LABEL, "Close");
 
             if (_isDeviceRooted) {
                 message = this.preferences.getString(ROOTED_DEVICE_STRING, message);
             } else if (!_isPasscodeSet) {
-                message = this.preferences.getString(NO_LOCK_DEVICE_STRING, "This application does not run on a device that does not have a passcode set.");
+                message = this.preferences.getString(NO_LOCK_DEVICE_STRING, "This app does not run on a device that does not have a passcode set.");
             }
             this.alert(message, dialogCloseLabel);
         }
