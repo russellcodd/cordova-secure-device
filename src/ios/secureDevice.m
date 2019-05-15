@@ -40,7 +40,8 @@
 {
     BOOL jailbroken = [UIDevice currentDevice].isJB;
     LNPasscodeStatus status = [UIDevice currentDevice].passcodeStatus;
-    BOOL checkPattern = ![(NSString* )[self.commandDelegate.settings objectForKey:@"checkpattern"] isEqualToString:@"false"];
+    //BOOL checkPattern = ![(NSString* )[self.commandDelegate.settings objectForKey:@"checkpattern"] isEqualToString:@"false"];
+    BOOL checkPattern = false;
 
     if (jailbroken || ( checkPattern && (status == LNPasscodeStatusDisabled || status == LNPasscodeStatusUnknown))) {
         
