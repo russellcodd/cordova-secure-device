@@ -1,3 +1,5 @@
+This has been forked from the OutSystems experts version, and hardcoded in the ios and android src files to NOT check the pincode/pattern security. This lets us have a device that still checks for rooting or jailbreaking, but we're not bothered if the end user has a PIN set.
+
 # cordova-secure-device
 
 When the plugin initializes it validates if the device is compromised by validating if it is rooted or jailbroken, and if a pin, pattern, or password is set. If the device is compromised the webview is removed and an alert message is shown. Upon closing the dialog the app exits.
